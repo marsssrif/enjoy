@@ -78,6 +78,20 @@ import {
 
 // --- KONFIGURASI GEMINI API ---
 const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+const getStudentName = (student?: StudentData | null) =>
+  student?.nama || student?.NAMA || "Student";
+
+const getStudentNrp = (student?: StudentData | null) =>
+  student?.nrp || student?.NRP || "-";
+
+const getStudentProdi = (student?: StudentData | null) =>
+  student?.prodi || student?.PRODI || "-";
+
+const getStudentStatus = (student?: StudentData | null) =>
+  student?.STATUS || "Unknown";
+
+const getStudentNomor = (student?: StudentData | null) =>
+  student?.nomor || student?.NOMOR || "";
 
 export default function App() {
   const [displayedData, setDisplayedData] = useState<StudentData[]>([]);
@@ -161,7 +175,7 @@ export default function App() {
 
     const prompt = `
       Based on this student data:
-      - Nama: ${selectedStudent.nama}
+      - Nama: ${getStudentName(selectedStudent)}
       - GPA: ${studentStats.currentGPA.toFixed(2)}
       - Attendance: ${studentStats.attendance.toFixed(0)}%
       - Semester: ${studentStats.currentSemester}
@@ -217,7 +231,7 @@ export default function App() {
       const nilaiRes = await fetch('/api/student', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'fetch-nilai', nomor: studentData.nomor }),
+        body: JSON.stringify({ action: 'fetch-nilai', nomor: getStudentNomor(studentData) }),
       });
       const nilaiResult = await nilaiRes.json();
       const nilaiData = nilaiResult.data || [];
@@ -400,7 +414,7 @@ export default function App() {
         });
         
         const link = document.createElement('a');
-        link.download = `Wrapped-${student.nama?.replace(/\s+/g, '-') || 'Unknown'}-${stats.currentYear}.png`;
+        link.download = `Wrapped-${getStudentName(student).replace(/\s+/g, '-')}-${stats.currentYear}.png`;
         link.href = dataUrl;
         link.click();
       } catch (error) { 
@@ -425,7 +439,7 @@ export default function App() {
 
         // Download image first
         const link = document.createElement('a');
-        link.download = `Wrapped-${student.nama?.replace(/\s+/g, '-') || 'Unknown'}-${stats.currentYear}.png`;
+        link.download = `Wrapped-${getStudentName(student).replace(/\s+/g, '-')}-${stats.currentYear}.png`;
         link.href = dataUrl;
         link.click();
 
@@ -459,7 +473,7 @@ export default function App() {
 
         // Download image first
         const link = document.createElement('a');
-        link.download = `Wrapped-${(student.nama || student.NAMA || 'Student').replace(/\s+/g, '-')}-${stats.currentYear}.png`;
+        link.download = `Wrapped-${getStudentName(student).replace(/\s+/g, '-')}-${stats.currentYear}.png`;
         link.href = dataUrl;
         link.click();
 
@@ -505,7 +519,9 @@ export default function App() {
                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-dashed ${borderColor} rounded-full animate-[spin_10s_linear_infinite] opacity-50`}></div>
                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 border border-white/10 rounded-full animate-[spin_15s_linear_infinite_reverse] opacity-30`}></div>
                <div className="w-40 h-40 rounded-full border-4 border-white shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden bg-white/10 backdrop-blur-xl flex items-center justify-center relative z-20">
-                  <span className="text-8xl font-black text-white drop-shadow-lg">{(student.nama || student.NAMA || 'S').charAt(0)}</span>
+                  <span className="text-8xl font-black text-white drop-shadow-lg">
+  {getStudentName(student).charAt(0).toUpperCase()}
+</span>
                </div>
                <div className="absolute -bottom-4 bg-black text-white px-3 py-1 rounded-full border border-white/20 text-xs font-bold tracking-widest z-30 uppercase shadow-lg">
                   {stats.currentSemester}
@@ -514,7 +530,9 @@ export default function App() {
 
             <div className="mt-10 text-center space-y-4">
                <h2 className="text-4xl font-black leading-none uppercase drop-shadow-xl tracking-tight">
-                 {(student.nama || student.NAMA || 'Student').split(" ").map((word, i) => <span key={i} className="block">{word}</span>)}
+                 {getStudentName(student).split(" ").map((word, i) => (
+  <span key={i} className="block">{word}</span>
+))}
                </h2>
                
                <div className="relative mx-4 mt-4 group">
@@ -663,13 +681,13 @@ export default function App() {
               <div className="flex justify-between items-start mb-6">
                 <div className="flex gap-4 items-center flex-1">
                   <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold backdrop-blur-md border border-white/40 shadow-lg">
-                    {(selectedStudent.nome || selectedStudent.NAMA || 'S').charAt(0).toUpperCase()}
+                    {getStudentName(selectedStudent).charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold tracking-tight">{selectedStudent.nama || selectedStudent.NAMA || 'Student'}</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">{getStudentName(selectedStudent)}</h2>
                     <p className="text-blue-100 flex items-center gap-2 mt-1">
-                      <span className="bg-white/20 px-3 py-1 rounded-lg text-sm font-mono font-semibold">{selectedStudent.nrp || selectedStudent.NRP}</span>
-                      <span className="text-sm opacity-90">{selectedStudent.prodi || selectedStudent.PRODI || 'N/A'}</span>
+                      <span className="bg-white/20 px-3 py-1 rounded-lg text-sm font-mono font-semibold">{getStudentNrp(selectedStudent)}</span>
+                      <span className="text-sm opacity-90">{getStudentProdi(selectedStudent)}</span>
                     </p>
                   </div>
                 </div>
@@ -961,20 +979,28 @@ export default function App() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
               {displayedData.map((mhs) => (
-                <div key={mhs.nrp || mhs.NRP || Math.random()} className="group bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:border-blue-400 transition-all duration-300 flex flex-col h-full">
+                <div key={getStudentNrp(mhs) || Math.random()} className="group bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:border-blue-400 transition-all duration-300 flex flex-col h-full">
                   {/* Card Header with Gradient */}
                   <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white relative overflow-hidden">
                     <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full"></div>
-                    <div className="relative flex items-start justify-between mb-4">
-                      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold backdrop-blur-md border border-white/30 shadow-lg">
-                        {(mhs.nama || mhs.NAMA || 'S').charAt(0).toUpperCase()}
-                      </div>
-                      <span className={`px-3 py-1.5 text-xs font-bold rounded-full backdrop-blur-md border ${mhs.status === 'Aktif' ? 'bg-green-500/20 text-green-100 border-green-300/50' : mhs.status === 'Cuti' ? 'bg-yellow-500/20 text-yellow-100 border-yellow-300/50' : 'bg-red-500/20 text-red-100 border-red-300/50'}`}>
-                        {mhs.status || 'Active'}
-                      </span>
+                  <div className="relative flex items-start justify-between mb-4">
+                    <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold backdrop-blur-md border border-white/30 shadow-lg">
+                      {getStudentName(mhs).charAt(0).toUpperCase()}
                     </div>
-                    <h3 className="font-bold text-xl mb-1">{(mhs.nama || mhs.NAMA || 'N/A').substring(0, 20)}</h3>
-                    <p className="text-white/80 font-mono text-sm">{mhs.nrp || mhs.NRP}</p>
+                    <span
+                      className={`px-3 py-1.5 text-xs font-bold rounded-full backdrop-blur-md border ${
+                        getStudentStatus(mhs) === 'Aktif'
+                          ? 'bg-green-500/20 text-green-100 border-green-300/50'
+                          : getStudentStatus(mhs) === 'Cuti'
+                          ? 'bg-yellow-500/20 text-yellow-100 border-yellow-300/50'
+                          : 'bg-red-500/20 text-red-100 border-red-300/50'
+                      }`}
+                    >
+                      {getStudentStatus(mhs)}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-xl mb-1">{getStudentName(mhs).substring(0, 20)}</h3>
+                  <p className="text-white/80 font-mono text-sm">{getStudentNrp(mhs)}</p>
                   </div>
 
                   {/* Card Body */}
@@ -982,7 +1008,7 @@ export default function App() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 text-gray-700">
                         <BookOpen className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        <span className="text-sm font-medium truncate">{mhs.prodi || mhs.PRODI || '-'}</span>
+                        <span className="text-sm font-medium truncate">{getStudentProdi(mhs)}</span>
                       </div>
                       <div className="flex items-center gap-3 text-gray-700">
                         <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0" />
@@ -1022,7 +1048,7 @@ export default function App() {
                 <div>
                   <h2 className="text-3xl font-bold flex items-center gap-3"><Trophy className="w-8 h-8" /> Class Rankings</h2>
                   <p className="text-orange-100 text-base mt-2">
-                    Ranking by GPA • {selectedStudent && `${selectedStudent.prodi || selectedStudent.PRODI} Program`} • {classLeaderboard.length} Students
+                    Ranking by GPA • {selectedStudent && `${getStudentProdi(selectedStudent)} Program`} • {classLeaderboard.length} Students
                   </p>
                 </div>
                 <button 
@@ -1060,7 +1086,7 @@ export default function App() {
                   rankBgColor = 'bg-gradient-to-br from-blue-100 to-blue-200';
                 }
 
-                const isCurrentStudent = selectedStudent?.nrp === student.nrp;
+                const isCurrentStudent = getStudentNrp(selectedStudent) === getStudentNrp(student);
 
                 return (
                   <div 
@@ -1079,11 +1105,11 @@ export default function App() {
                     {/* Student Info */}
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-bold text-slate-900 text-lg">{student.nama}</h3>
+                        <h3 className="font-bold text-slate-900 text-lg">{getStudentName(student)}</h3>
                         {medalIcon && <span className={`${medalColor}`}>{medalIcon}</span>}
                         {isCurrentStudent && <span className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-bold">YOU</span>}
                       </div>
-                      <p className="text-xs text-slate-500 font-mono">{student.nrp}</p>
+                      <p className="text-xs text-slate-500 font-mono">{getStudentNrp(student)}</p>
                     </div>
 
                     {/* GPA */}
